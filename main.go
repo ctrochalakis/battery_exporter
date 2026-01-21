@@ -34,15 +34,22 @@ var (
 		Name: "battery_energy_full_design",
 		Help: "Energy Full in mWh By Design",
 	})
+	chargeNow = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "battery_charge_now",
+		Help: "Charge Now in mWh",
+	})
+	chargeFull = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "battery_charge_full",
+		Help: "Charge Full in mWh",
+	})
+	chargeFullDesign = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "battery_charge_full_design",
+		Help: "Charge Full in mWh By Design",
+	})
 	cycleCount = prometheus.NewGauge(prometheus.GaugeOpts{
 		Name: "battery_cycle_count",
 		Help: "Battery Charge Cycle Count",
 	})
-	MetricsMap = map[string]prometheus.Gauge{
-		"energy_now":         energyNow,
-		"energy_full":        energyFull,
-		"energy_full_design": energyFullDesign,
-	}
 )
 
 func init() {
@@ -50,6 +57,9 @@ func init() {
 	prometheus.MustRegister(energyNow)
 	prometheus.MustRegister(energyFull)
 	prometheus.MustRegister(energyFullDesign)
+	prometheus.MustRegister(chargeNow)
+	prometheus.MustRegister(chargeFull)
+	prometheus.MustRegister(chargeFullDesign)
 	prometheus.MustRegister(cycleCount)
 }
 
@@ -68,12 +78,22 @@ func readValue(path string) (float64, error) {
 }
 
 func collectMetrics() {
-	for k, v := range MetricsMap {
+	// Try to collect all possible metrics - both energy and charge based
+	allMetrics := map[string]prometheus.Gauge{
+		"energy_now":         energyNow,
+		"energy_full":        energyFull,
+		"energy_full_design": energyFullDesign,
+		"charge_now":         chargeNow,
+		"charge_full":        chargeFull,
+		"charge_full_design": chargeFullDesign,
+	}
+
+	for k, v := range allMetrics {
 		metricFilePath := filepath.Join(*metricsPath, k)
 
 		value, err := readValue(metricFilePath)
 		if err != nil {
-			log.Printf("failed to collect metric %s: %s", k, err)
+			// Silently skip metrics that don't exist
 			continue
 		}
 

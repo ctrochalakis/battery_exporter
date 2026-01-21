@@ -123,7 +123,7 @@ func main() {
 		w.Write([]byte(`<html>
 <head><title>Exporter v` + BuildVersion + `</title></head>
 <body>
-<h1>Redis Exporter ` + BuildVersion + `</h1>
+<h1>Battery Exporter ` + BuildVersion + `</h1>
 <p><a href='/metrics'>Metrics</a></p>
 </body>
 </html>
